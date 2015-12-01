@@ -43,6 +43,13 @@ __thread struct gomp_thread gomp_tls_data;
 pthread_key_t gomp_tls_key;
 #endif
 
+void
+gomp_datarace_master_begin_dynamic_work(uint64_t region_id, long span) __attribute__ ((noinline));
+void
+gomp_datarace_end_dynamic_work() __attribute__ ((noinline));
+void
+gomp_datarace_begin_dynamic_work(uint64_t region_id, long span, long iter) __attribute__ ((noinline));
+
 
 /* This structure is used to communicate across pthread_create.  */
 
@@ -103,7 +110,8 @@ gomp_thread_start (void *xdata)
 
       gomp_barrier_wait (&team->barrier);
 
-      gomp_datarace_begin_work(team->region_id, gomp_thread()->ts.team_id);
+      long team_id = gomp_thread()->ts.team_id;
+      gomp_datarace_begin_dynamic_work(team->region_id, 1L, team_id);
       local_fn (local_data);
       gomp_team_barrier_wait (&team->barrier);
       gomp_finish_task (task);
@@ -119,7 +127,8 @@ gomp_thread_start (void *xdata)
 	  struct gomp_team *team = thr->ts.team;
 	  struct gomp_task *task = thr->task;
 
-          gomp_datarace_begin_work(team->region_id, gomp_thread()->ts.team_id);
+	  long team_id = gomp_thread()->ts.team_id;
+	  gomp_datarace_begin_dynamic_work(team->region_id, 1, team_id);
 	  local_fn (local_data);
 	  gomp_team_barrier_wait (&team->barrier);
 	  gomp_finish_task (task);
@@ -139,11 +148,6 @@ gomp_thread_start (void *xdata)
 
 /* A dummey function for region ID
    This function will be captured by PIN */
-void
-gomp_datarace_master_begin_parallel_region(uint64_t region_id, unsigned nthreads)
-{
-  return;
-}
 
 /* Create a new team data structure.  */
 
@@ -193,7 +197,7 @@ gomp_new_team (unsigned nthreads)
   team->region_id = gomp_parallel_region_id;
   gomp_mutex_unlock (&gomp_parallel_region_id_lock);
 #endif
-  gomp_datarace_master_begin_parallel_region(team->region_id, nthreads);
+  gomp_datarace_master_begin_dynamic_work(team->region_id, nthreads);
 
   return team;
 }
@@ -505,6 +509,7 @@ gomp_team_end (void)
 {
   struct gomp_thread *thr = gomp_thread ();
   struct gomp_team *team = thr->ts.team;
+  gomp_datarace_end_dynamic_work();
 
   /* This barrier handles all pending explicit threads.  */
   gomp_team_barrier_wait (&team->barrier);

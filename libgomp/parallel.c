@@ -33,14 +33,6 @@
    SPECIFIED is a combination of the NUM_THREADS clause and the IF clause.
    If the IF clause is false, SPECIFIED is forced to 1.  When NUM_THREADS
    is not present, SPECIFIED is 0.  */
-void
-gomp_datarace_master_end_dynamic_work();
-
-void
-gomp_datarace_master_end_dynamic_work()
-{
-  return;
-}
 
 unsigned
 gomp_resolve_num_threads (unsigned specified, unsigned count)
@@ -139,8 +131,6 @@ GOMP_parallel_end (void)
     }
   else
     gomp_team_end ();
-
-  gomp_datarace_master_end_dynamic_work();
 }
 
 /* The public OpenMP API for thread and team related inquiries.  */
