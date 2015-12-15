@@ -31,7 +31,7 @@
 void
 gomp_datarace_master_begin_dynamic_work(uint64_t region_id, long span) __attribute__ ((noinline));
 void
-gomp_datarace_end_dynamic_work() __attribute__ ((noinline));
+gomp_datarace_end_dynamic_work(bool nowait) __attribute__ ((noinline));
 void
 gomp_datarace_begin_dynamic_work(uint64_t region_id, long span, long iter, unsigned nthreads) __attribute__ ((noinline));
 
@@ -41,7 +41,7 @@ gomp_datarace_master_begin_dynamic_work(uint64_t region_id, long span)
   return;
 }
 void
-gomp_datarace_end_dynamic_work()
+gomp_datarace_end_dynamic_work(bool nowait)
 {
   return;
 }
@@ -550,14 +550,14 @@ GOMP_parallel_loop_runtime_start (void (*fn) (void *), void *data,
 void
 GOMP_loop_end (void)
 {
-  gomp_datarace_end_dynamic_work();
+  gomp_datarace_end_dynamic_work(false);
   gomp_work_share_end ();
 }
 
 void
 GOMP_loop_end_nowait (void)
 {
-  gomp_datarace_end_dynamic_work();
+  gomp_datarace_end_dynamic_work(true);
   gomp_work_share_end_nowait ();
 }
 

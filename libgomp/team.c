@@ -511,7 +511,7 @@ gomp_team_end (void)
 {
   struct gomp_thread *thr = gomp_thread ();
   struct gomp_team *team = thr->ts.team;
-  gomp_datarace_end_dynamic_work();
+  gomp_datarace_end_dynamic_work(false);
 
   /* This barrier handles all pending explicit threads.  */
   gomp_team_barrier_wait (&team->barrier);
