@@ -33,7 +33,7 @@ gomp_datarace_master_begin_dynamic_work(uint64_t region_id, long span) __attribu
 void
 gomp_datarace_end_dynamic_work() __attribute__ ((noinline));
 void
-gomp_datarace_begin_dynamic_work(uint64_t region_id, long span, long iter) __attribute__ ((noinline));
+gomp_datarace_begin_dynamic_work(uint64_t region_id, long span, long iter, unsigned nthreads) __attribute__ ((noinline));
 
 void
 gomp_datarace_master_begin_dynamic_work(uint64_t region_id, long span)
@@ -124,7 +124,7 @@ gomp_loop_init (struct gomp_work_share *ws, long start, long end, long incr,
 
 /* The data race support, pass the chunk size of the current worksharing */
 void
-gomp_datarace_begin_dynamic_work(uint64_t region_id, long span, long iter)
+gomp_datarace_begin_dynamic_work(uint64_t region_id, long span, long iter, unsigned nthreads)
 {
   return;
 }
@@ -171,7 +171,8 @@ gomp_loop_dynamic_start (long start, long end, long incr, long chunk_size,
 
   long span = (thr->ts.work_share->end - thr->ts.work_share->start)/thr->ts.work_share->incr;
   long iter = (*istart - start)/incr;
-  gomp_datarace_begin_dynamic_work(thr->ts.work_share->ws_id, span, iter);
+  unsigned nthreads = thr->ts.team->nthreads;
+  gomp_datarace_begin_dynamic_work(thr->ts.work_share->ws_id, span, iter, nthreads);
 
   return ret;
 }
@@ -271,7 +272,8 @@ gomp_loop_ordered_dynamic_start (long start, long end, long incr,
 
   long span = (thr->ts.work_share->end - thr->ts.work_share->start)/thr->ts.work_share->incr;
   long iter = (*istart - start)/incr;
-  gomp_datarace_begin_dynamic_work(thr->ts.work_share->ws_id, span, iter);
+  unsigned nthreads = thr->ts.team->nthreads;
+  gomp_datarace_begin_dynamic_work(thr->ts.work_share->ws_id, span, iter, nthreads);
   return ret;
 }
 
@@ -362,7 +364,8 @@ gomp_loop_dynamic_next (long *istart, long *iend)
   struct gomp_thread *tmp_thr = gomp_thread();
   long span = (tmp_thr->ts.work_share->end - tmp_thr->ts.work_share->start)/tmp_thr->ts.work_share->incr;
   long iter = (*istart - tmp_thr->ts.work_share->start)/tmp_thr->ts.work_share->incr;
-  gomp_datarace_begin_dynamic_work(tmp_thr->ts.work_share->ws_id, span, iter);
+  unsigned nthreads = tmp_thr->ts.team->nthreads;
+  gomp_datarace_begin_dynamic_work(tmp_thr->ts.work_share->ws_id, span, iter, nthreads);
 
   return ret;
 }
@@ -444,7 +447,8 @@ gomp_loop_ordered_dynamic_next (long *istart, long *iend)
   struct gomp_thread *tmp_thr = gomp_thread();
   long span = (tmp_thr->ts.work_share->end - tmp_thr->ts.work_share->start)/tmp_thr->ts.work_share->incr;
   long iter = (*istart - tmp_thr->ts.work_share->start)/tmp_thr->ts.work_share->incr;
-  gomp_datarace_begin_dynamic_work(tmp_thr->ts.work_share->ws_id, span, iter);
+  unsigned nthreads = tmp_thr->ts.team->nthreads;
+  gomp_datarace_begin_dynamic_work(tmp_thr->ts.work_share->ws_id, span, iter, nthreads);
   return ret;
 }
 
